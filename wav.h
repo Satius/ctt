@@ -7,6 +7,9 @@
 namespace wav {
 
 struct Info {
+  bool stereo;
+  unsigned sample_rate;
+  unsigned bits_per_sample;
 };
 
 struct IInputWavStream : public IInputStream {
