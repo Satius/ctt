@@ -2,23 +2,19 @@
 #define CTT_WAV_H_
 
 #include "stream.h"
-#include <fstream>
+#include <memory>
 
 namespace wav {
 
 struct Info {
 };
 
-class InputWavStream : public IInputStream {
- private:
-  std::ifstream src_;
-  Info info_;
-
- public:
-  InputWavStream(const std::string& fname);
-  Info GetInfo() const;
-  std::size_t Read(uint8_t* buffer, std::size_t size) override;
+struct IInputWavStream : public IInputStream {
+  virtual Info GetInfo() const = 0;
 };
+
+using InputWavStreamPtr = std::unique_ptr<IInputWavStream>;
+InputWavStreamPtr ReadWavFile(const std::string& fname);
 
 }  // namespace wav
 

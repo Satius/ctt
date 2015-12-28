@@ -15,10 +15,9 @@ const char kDstExtension[] = "mp3";
 void HandleStreams(IInputStream& src, IOutputStream& dst) {
   try {
     std::vector<uint8_t> buffer(kBufferSize);
-    for (bool eof = false; !eof;) {
+    for (;;) {
       auto size = src.Read(buffer.data(), buffer.size());
-      std::cout << size << std::endl;
-      eof = !size;
+      if (!size) break;
       if (dst.Write(buffer.data(), size) != size)
         throw std::runtime_error("Failed to write compete data");
     }
@@ -31,9 +30,9 @@ void EncodeFile(const std::string& path) {
   try {
     if (!util::CheckExtension(path, kSrcExtension))
       throw std::runtime_error("Wrong source file extension");
-    wav::InputWavStream src(path);
-    mp3::OutputMp3Stream dst(util::ChangeExtension(path, kDstExtension));
-    HandleStreams(src, dst);
+    auto src = wav::ReadWavFile(path);
+    auto dst = mp3::WriteMp3File(util::ChangeExtension(path, kDstExtension));
+    HandleStreams(*src, *dst);
   } catch (const std::exception&) {
     const auto& msg = util::Join("Failed to encode file", path);
     std::throw_with_nested(std::runtime_error(msg));
