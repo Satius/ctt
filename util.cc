@@ -1,7 +1,10 @@
 #include "util.h"
+#include <dirent.h>
+#include <memory>
 
 namespace {
 
+constexpr char kDirSeparator[] = "/";
 constexpr char kExtSeparator[] = ".";
 
 }  // namespace
@@ -25,6 +28,20 @@ bool CheckExtension(const std::string& fname, const std::string& ext) {
 std::string ChangeExtension(const std::string& fname, const std::string& ext) {
   auto sep = fname.find_last_of(kExtSeparator);
   return Join<kExtSeparator>(fname.substr(0, sep), ext);
+}
+
+std::stack<std::string> EnumDir(const std::string& path, const std::function<bool(const std::string&)>& filter) {
+  std::unique_ptr<DIR, decltype(&closedir)> dir(opendir(path.c_str()), closedir);
+  if (!dir) {
+    const auto& message = Join("Failed to open directory", path);
+    util::ThrowSystemError(message);
+  }
+  std::stack<std::string> result;
+  for (dirent* item; (item = readdir(dir.get()));) {
+    if (filter(item->d_name))
+      result.push(Join<kDirSeparator>(path, item->d_name));
+  }
+  return result;
 }
 
 }  // namespace util

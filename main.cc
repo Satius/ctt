@@ -11,6 +11,13 @@ const char kSrcExtension[] = "wav";
 const int kBufferSize = 1024 * 1024;
 const int kMp3Quality = 5;
 
+void PrintFormattedException(const std::exception& ex) {
+  int i = 0;
+  util::UnwindNested(ex, [&i](const auto& op){
+    std::cerr << "!" << std::string(i++ * 2 + 1, ' ') << op.what() << std::endl;
+  });
+}
+
 }  // namespace
 
 void HandleStreams(IInputStream& src, IOutputStream& dst) {
@@ -46,13 +53,21 @@ void EncodeFile(const std::string& path) {
 int main(int argc, char** argv) {
   try {
     if (argc < 2) throw std::runtime_error("Wrong set of arguments");
-    EncodeFile(argv[1]);
+    auto files = util::EnumDir(argv[1],
+        std::bind(util::CheckExtension, std::placeholders::_1, kSrcExtension));
+    if (files.empty()) {
+      std::cout << "No wav files found in directory " << argv[1] << std::endl;
+      return 0;
+    }
+    for (; files.size(); files.pop()) try {
+      std::cout << "Encoding " << files.top() << std::endl;
+      EncodeFile(files.top());
+    } catch (const std::exception& ex) {
+      PrintFormattedException(ex);
+    }
     return 0;
   } catch (const std::exception& ex) {
-    int i = 0;
-    util::UnwindNested(ex, [&i](const auto& op){
-      std::cerr << "!" << std::string(i++ * 2 + 1, ' ') << op.what() << std::endl;
-    });
+    PrintFormattedException(ex);
     return 1;
   }
 }

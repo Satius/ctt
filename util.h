@@ -2,6 +2,8 @@
 #define CTT_UTIL_H_
 
 #include "util_impl.h"
+#include <functional>
+#include <stack>
 
 namespace util {
 
@@ -30,6 +32,7 @@ inline constexpr std::size_t Length(const T(&)[N]) {
 void ThrowSystemError(const std::string& msg);
 bool CheckExtension(const std::string& fname, const std::string& ext);
 std::string ChangeExtension(const std::string& fname, const std::string& ext);
+std::stack<std::string> EnumDir(const std::string& path, const std::function<bool(const std::string&)>& filter);
 
 }  // namespace util
 
