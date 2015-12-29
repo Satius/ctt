@@ -1,4 +1,5 @@
 #include "mp3.h"
+#include "thread.h"
 #include "util.h"
 #include "wav.h"
 #include <iostream>
@@ -11,14 +12,23 @@ const char kSrcExtension[] = "wav";
 const int kBufferSize = 1024 * 1024;
 const int kMp3Quality = 5;
 
+struct Context {
+  pthread_mutex_t log_mutex;
+  pthread_mutex_t queue_mutex;
+  std::stack<std::string> files;
+
+  Context(const std::stack<std::string>& arg) :
+      log_mutex(PTHREAD_MUTEX_INITIALIZER),
+      queue_mutex(PTHREAD_MUTEX_INITIALIZER),
+      files(arg) {}
+};
+
 void PrintFormattedException(const std::exception& ex) {
   int i = 0;
   util::UnwindNested(ex, [&i](const auto& op){
     std::cerr << "!" << std::string(i++ * 2 + 1, ' ') << op.what() << std::endl;
   });
 }
-
-}  // namespace
 
 void HandleStreams(IInputStream& src, IOutputStream& dst) {
   try {
@@ -50,20 +60,51 @@ void EncodeFile(const std::string& path) {
   }
 }
 
+std::string GetNextFile(Context* ctx) {
+  thread::MutexLocker lock(&ctx->queue_mutex);
+  if (ctx->files.empty()) return {};
+  auto result = ctx->files.top();
+  ctx->files.pop();
+  return result;
+}
+
+void* Worker(void* arg) {
+  auto thread_id = pthread_self();
+  auto ctx = reinterpret_cast<Context*>(arg);
+  for (;;) try {
+    const auto& fname = GetNextFile(ctx);
+    if (fname.empty()) return nullptr;
+    const auto& message = util::Join("Handling", fname, "in thread", thread_id);
+    {
+      thread::MutexLocker locker(&ctx->log_mutex);
+      std::cout << message << std::endl;
+    }
+    EncodeFile(fname);
+  } catch (const std::exception& ex) {
+    thread::MutexLocker locker(&ctx->log_mutex);
+    PrintFormattedException(ex);
+  }
+}
+
+}  // namespace
+
 int main(int argc, char** argv) {
   try {
     if (argc < 2) throw std::runtime_error("Wrong set of arguments");
-    auto files = util::EnumDir(argv[1],
-        std::bind(util::CheckExtension, std::placeholders::_1, kSrcExtension));
-    if (files.empty()) {
+    const auto& filter = std::bind(util::CheckExtension, std::placeholders::_1, kSrcExtension);
+    auto ctx = std::make_unique<Context>(util::EnumDir(argv[1], filter));
+    if (ctx->files.empty()) {
       std::cout << "No wav files found in directory " << argv[1] << std::endl;
       return 0;
     }
-    for (; files.size(); files.pop()) try {
-      std::cout << "Encoding " << files.top() << std::endl;
-      EncodeFile(files.top());
-    } catch (const std::exception& ex) {
-      PrintFormattedException(ex);
+    std::vector<pthread_t> threads(util::GetCoreCount());
+    for (auto& it : threads) {
+      if (pthread_create(&it, nullptr, Worker, ctx.get()))
+        util::ThrowSystemError("Failed to create a thread");
+    }
+    for (auto it : threads) {
+      if (pthread_join(it, nullptr))
+        util::ThrowSystemError("Failed to join a thread");
     }
     return 0;
   } catch (const std::exception& ex) {

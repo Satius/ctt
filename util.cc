@@ -1,5 +1,6 @@
 #include "util.h"
 #include <dirent.h>
+#include <unistd.h>
 #include <memory>
 
 namespace {
@@ -42,6 +43,10 @@ std::stack<std::string> EnumDir(const std::string& path, const std::function<boo
       result.push(Join<kDirSeparator>(path, item->d_name));
   }
   return result;
+}
+
+int GetCoreCount() {
+  return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 }  // namespace util

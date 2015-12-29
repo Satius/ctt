@@ -7,6 +7,12 @@
 
 namespace util {
 
+struct NonCopyable {
+  NonCopyable() = default;
+  NonCopyable(const NonCopyable&) = delete;
+  NonCopyable& operator=(const NonCopyable&) = delete;
+};
+
 template<const char* sep = detail::kSpaceString, class... T>
 inline std::string Join(const T&... args) {
   std::ostringstream buf;
@@ -33,6 +39,7 @@ void ThrowSystemError(const std::string& msg);
 bool CheckExtension(const std::string& fname, const std::string& ext);
 std::string ChangeExtension(const std::string& fname, const std::string& ext);
 std::stack<std::string> EnumDir(const std::string& path, const std::function<bool(const std::string&)>& filter);
+int GetCoreCount();
 
 }  // namespace util
 
