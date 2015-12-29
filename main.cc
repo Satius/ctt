@@ -6,9 +6,10 @@
 
 namespace {
 
-const int kBufferSize = 1024 * 1024;
-const char kSrcExtension[] = "wav";
 const char kDstExtension[] = "mp3";
+const char kSrcExtension[] = "wav";
+const int kBufferSize = 1024 * 1024;
+const int kMp3Quality = 5;
 
 }  // namespace
 
@@ -31,7 +32,10 @@ void EncodeFile(const std::string& path) {
     if (!util::CheckExtension(path, kSrcExtension))
       throw std::runtime_error("Wrong source file extension");
     auto src = wav::ReadWavFile(path);
+    const auto& src_info = src->GetInfo();
+    mp3::Info dst_info = {src_info.num_channels, src_info.sample_rate, src_info.bits_per_sample, kMp3Quality};
     auto dst = mp3::WriteMp3File(util::ChangeExtension(path, kDstExtension));
+    dst->SetInfo(dst_info);
     HandleStreams(*src, *dst);
   } catch (const std::exception&) {
     const auto& msg = util::Join("Failed to encode file", path);

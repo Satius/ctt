@@ -44,14 +44,10 @@ wav::Info ReadWavInfo(std::istream& src) {
     const auto& message = util::Join("Audio is not in PCM format", header.audio_format);
     throw std::runtime_error(message);
   }
-  if (header.num_channels != 1 && header.num_channels != 2) {
-    const auto& message = util::Join("Unexpected number of channels", header.num_channels);
-    throw std::runtime_error(message);
-  }
   auto next_chunk = kFmtOffset + header.fmt_size;
   src.seekg(next_chunk - sizeof(header), std::ios_base::cur);
   if (!src) util::ThrowSystemError("Unexpected error while reading header");
-  return {header.num_channels == 2, header.sample_rate, header.bits_per_sample};
+  return {header.num_channels, static_cast<int>(header.sample_rate), header.bits_per_sample};
 }
 
 bool FindDataChunk(std::istream& src, std::size_t& chunk_size) {
