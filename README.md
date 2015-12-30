@@ -19,6 +19,7 @@ Buildable on any more-or-less modern distribution (gcc 4.8+) as easy as "cmake .
 In addition to standard mingw32-base, following packages must be installed:
 * mingw32-gcc-g++
 * mingw32-pthreads-w32
+
 Afterwards, generate MinGW makefile with cmake and build using mingw32-make. Prebuilt static libmp3lame is available in lib directory.
 
 ## VS2015
