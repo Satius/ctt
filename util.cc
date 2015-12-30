@@ -70,8 +70,9 @@ int GetCoreCount() {
 #ifndef _WIN32
   return sysconf(_SC_NPROCESSORS_ONLN);
 #else  // _WIN32
-  // TODO: Implement me!
-  return 4;
+  SYSTEM_INFO sysinfo;
+  GetSystemInfo(&sysinfo);
+  return sysinfo.dwNumberOfProcessors;
 #endif  // _WIN32
 }
 
