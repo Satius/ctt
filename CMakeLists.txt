@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4)
 project(ctt)
-add_definitions(-O0 -g3 -Wall -std=c++14)
+add_definitions(-O0 -g3 -Wall -std=c++11)
 aux_source_directory(. SRC)
 add_executable(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME} mp3lame pthread)

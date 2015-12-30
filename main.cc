@@ -25,7 +25,7 @@ struct Context {
 
 void PrintFormattedException(const std::exception& ex) {
   int i = 0;
-  util::UnwindNested(ex, [&i](const auto& op){
+  util::UnwindNested(ex, [&i](const std::exception& op){
     std::cerr << "!" << std::string(i++ * 2 + 1, ' ') << op.what() << std::endl;
   });
 }
@@ -69,7 +69,7 @@ std::string GetNextFile(Context* ctx) {
 }
 
 void* Worker(void* arg) {
-  auto thread_id = pthread_self();
+  auto thread_id = pthread_getunique_np(pthread_self());
   auto ctx = reinterpret_cast<Context*>(arg);
   for (;;) try {
     const auto& fname = GetNextFile(ctx);
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
   try {
     if (argc < 2) throw std::runtime_error("Wrong set of arguments");
     const auto& filter = std::bind(util::CheckExtension, std::placeholders::_1, kSrcExtension);
-    auto ctx = std::make_unique<Context>(util::EnumDir(argv[1], filter));
+    std::unique_ptr<Context> ctx(new Context(util::EnumDir(argv[1], filter)));
     if (ctx->files.empty()) {
       std::cout << "No wav files found in directory " << argv[1] << std::endl;
       return 0;

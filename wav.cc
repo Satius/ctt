@@ -76,7 +76,7 @@ class InputWavStreamImpl : public wav::IInputWavStream {
   InputWavStreamImpl(const std::string& fname) :
       chunk_size_(0),
       chunk_position_(0),
-      src_(fname),
+      src_(fname, std::ios::binary),
       info_(ReadWavInfo(src_)) {
     if (!src_) {
       const auto& message = util::Join("Can not open file", fname, "for reading");
@@ -107,7 +107,7 @@ class InputWavStreamImpl : public wav::IInputWavStream {
 namespace wav {
 
 InputWavStreamPtr ReadWavFile(const std::string& fname) {
-  return std::make_unique<InputWavStreamImpl>(fname);
+  return InputWavStreamPtr(new InputWavStreamImpl(fname));
 }
 
 }  // namespace wav

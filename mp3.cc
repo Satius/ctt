@@ -43,7 +43,7 @@ struct OutputMp3StreamImpl : public mp3::IOutputMp3Stream {
  public:
   OutputMp3StreamImpl(const std::string& fname) :
       buffer_(kBufferSize),
-      dst_(fname),
+      dst_(fname, std::ios::binary),
       failure_(false),
       lame_(lame_init(), lame_close) {
     if (!dst_) {
@@ -106,7 +106,7 @@ struct OutputMp3StreamImpl : public mp3::IOutputMp3Stream {
 namespace mp3 {
 
 OutputMp3StreamPtr WriteMp3File(const std::string& fname) {
-  return std::make_unique<OutputMp3StreamImpl>(fname);
+  return OutputMp3StreamPtr(new OutputMp3StreamImpl(fname));
 }
 
 }  // namespace wav

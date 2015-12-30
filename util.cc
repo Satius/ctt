@@ -2,6 +2,11 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <memory>
+#include <system_error>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif  // _WIN32
 
 namespace {
 
@@ -46,7 +51,12 @@ std::stack<std::string> EnumDir(const std::string& path, const std::function<boo
 }
 
 int GetCoreCount() {
+#ifndef _WIN32
   return sysconf(_SC_NPROCESSORS_ONLN);
+#else  // _WIN32
+  // TODO: Implement me!
+  return 4;
+#endif  // _WIN32
 }
 
 }  // namespace util
