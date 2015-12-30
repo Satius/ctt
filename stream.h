@@ -1,6 +1,7 @@
 #ifndef CTT_STREAM_H_
 #define CTT_STREAM_H_
 
+#include <cstddef>
 #include <cstdint>
 
 struct IInputStream {

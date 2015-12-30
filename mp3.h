@@ -3,6 +3,7 @@
 
 #include "stream.h"
 #include <memory>
+#include <string>
 
 namespace mp3 {
 

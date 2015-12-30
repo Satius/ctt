@@ -1,5 +1,6 @@
 #include "util.h"
 #include "mp3.h"
+#include <algorithm>
 #include <fstream>
 #include <vector>
 #include <lame/lame.h>
@@ -47,7 +48,7 @@ struct OutputMp3StreamImpl : public mp3::IOutputMp3Stream {
       failure_(false),
       lame_(lame_init(), lame_close) {
     if (!dst_) {
-      const auto& message = util::Join("Can not open file", fname, "for writing");
+      const auto& message = util::Join(util::kSpaceString, "Can not open file", fname, "for writing");
       util::ThrowSystemError(message);
     }
     if (!lame_)
@@ -56,11 +57,11 @@ struct OutputMp3StreamImpl : public mp3::IOutputMp3Stream {
 
   void SetInfo(const mp3::Info& info) override {
     if (info.num_channels != 1 && info.num_channels != 2) {
-      const auto& message = util::Join("Unexpected number of channels", info.num_channels);
+      const auto& message = util::Join(util::kSpaceString, "Unexpected number of channels", info.num_channels);
       throw std::runtime_error(message);
     }
     if (info.bits_per_sample != 8 && info.bits_per_sample != 16) {
-      const auto& message = util::Join("Unexpected bits per sample", info.bits_per_sample);
+      const auto& message = util::Join(util::kSpaceString, "Unexpected bits per sample", info.bits_per_sample);
       throw std::runtime_error(message);
     }
     info_ = info;

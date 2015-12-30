@@ -57,7 +57,7 @@ void EncodeFile(const std::string& path) {
     dst->SetInfo(dst_info);
     HandleStreams(*src, *dst);
   } catch (const std::exception&) {
-    const auto& msg = util::Join("Failed to encode file", path);
+    const auto& msg = util::Join(util::kSpaceString, "Failed to encode file", path);
     std::throw_with_nested(std::runtime_error(msg));
   }
 }
@@ -81,7 +81,7 @@ void* Worker(void* arg) {
   for (;;) try {
     const auto& fname = GetNextFile(ctx);
     if (fname.empty()) return nullptr;
-    const auto& message = util::Join("Handling", fname, "in thread", thread_id);
+    const auto& message = util::Join(util::kSpaceString, "Handling", fname, "in thread", thread_id);
     {
       thread::MutexLocker locker(&ctx->log_mutex);
       std::cout << message << std::endl;

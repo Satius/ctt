@@ -1,5 +1,6 @@
 #include "util.h"
 #include "wav.h"
+#include <algorithm>
 #include <fstream>
 
 namespace {
@@ -41,7 +42,7 @@ wav::Info ReadWavInfo(std::istream& src) {
   if (header.fmt_header != kFmtHeader)
     throw std::runtime_error("WAVE file is damaged");
   if (header.audio_format != kPcmFormat) {
-    const auto& message = util::Join("Audio is not in PCM format", header.audio_format);
+    const auto& message = util::Join(util::kSpaceString, "Audio is not in PCM format", header.audio_format);
     throw std::runtime_error(message);
   }
   auto next_chunk = kFmtOffset + header.fmt_size;
@@ -79,7 +80,7 @@ class InputWavStreamImpl : public wav::IInputWavStream {
       src_(fname, std::ios::binary),
       info_(ReadWavInfo(src_)) {
     if (!src_) {
-      const auto& message = util::Join("Can not open file", fname, "for reading");
+      const auto& message = util::Join(util::kSpaceString, "Can not open file", fname, "for reading");
       util::ThrowSystemError(message);
     }
   }

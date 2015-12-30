@@ -6,8 +6,6 @@
 namespace util {
 namespace detail {
 
-constexpr char kSpaceString[] = " ";
-
 template<class T>
 inline void JoinImpl(std::ostringstream& buf, const char*, const T& arg) {
   buf << arg;

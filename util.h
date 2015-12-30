@@ -7,14 +7,19 @@
 
 namespace util {
 
+const char kSpaceString[] = " ";
+
 struct NonCopyable {
   NonCopyable() = default;
   NonCopyable(const NonCopyable&) = delete;
   NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
-template<const char* sep = detail::kSpaceString, class... T>
-inline std::string Join(const T&... args) {
+// Supposed to be template<const char* sep = detail::kSpaceString, class... T>
+// Removed because constexpr implementation is broken in VS2015 compiler
+
+template<class... T>
+inline std::string Join(const char* sep, const T&... args) {
   std::ostringstream buf;
   detail::JoinImpl(buf, sep, args...);
   return buf.str();
