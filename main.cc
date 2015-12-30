@@ -13,11 +13,13 @@ const int kBufferSize = 1024 * 1024;
 const int kMp3Quality = 5;
 
 struct Context {
+  int counter;
   pthread_mutex_t log_mutex;
   pthread_mutex_t queue_mutex;
   std::stack<std::string> files;
 
   Context(const std::stack<std::string>& arg) :
+      counter(0),
       log_mutex(PTHREAD_MUTEX_INITIALIZER),
       queue_mutex(PTHREAD_MUTEX_INITIALIZER),
       files(arg) {}
@@ -68,9 +70,14 @@ std::string GetNextFile(Context* ctx) {
   return result;
 }
 
+int GetThreadId(Context* ctx) {
+  thread::MutexLocker locker(&ctx->queue_mutex);
+  return ++ctx->counter;
+}
+
 void* Worker(void* arg) {
-  auto thread_id = pthread_getunique_np(pthread_self());
   auto ctx = reinterpret_cast<Context*>(arg);
+  auto thread_id = GetThreadId(ctx);
   for (;;) try {
     const auto& fname = GetNextFile(ctx);
     if (fname.empty()) return nullptr;
